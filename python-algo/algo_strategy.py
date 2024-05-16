@@ -80,10 +80,12 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.build_support(game_state, support)
         game_state.attempt_upgrade(support)
         
-        self.send_scout(game_state)
+        extra_support = [[13+i, 2+i] for i in range(4)] + [[13+i, 1+i] for i in range(10)]
+        game_state.attempt_spawn(SUPPORT, extra_support)
+        game_state.attempt_upgrade(extra_support)
         
-        if game_state.number_affordable(SCOUT) > 15:
-            game_state.attempt_spawn(SCOUT, [14, 0], num = 15)
+        if game_state.number_affordable(DEMOLISHER) > 10:
+            game_state.attempt_spawn(DEMOLISHER, [14, 0], num = 10)
            
             
     def build_support(self, game_state, support):
@@ -91,9 +93,9 @@ class AlgoStrategy(gamelib.AlgoCore):
             game_state.attempt_spawn(SUPPORT, location)    
 
 
-    def send_scout(self, game_state):
+    def send_demolisher(self, game_state):
         scout_locations = [[13, 0], [14, 0]]
-        game_state.attempt_spawn(SCOUT, scout_locations)
+        game_state.attempt_spawn(DEMOLISHER, scout_locations)
           
           
     """
