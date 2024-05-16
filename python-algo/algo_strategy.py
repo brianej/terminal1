@@ -53,14 +53,49 @@ class AlgoStrategy(gamelib.AlgoCore):
         game engine.
         """
         game_state = gamelib.GameState(self.config, turn_state)
+
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  #Comment or remove this line to enable warnings.
-
-        self.starter_strategy(game_state)
-
+        
+        regular_walls = [[i, 13-i] for i in range(14)] + [[12+j, 2+j] for j in range(9)] 
+        main_walls = [[20+i, 13] for i in range(8) if i != 4]
+        start_walls = regular_walls + main_walls
+        
+        start_turrets = [[23, 12], [25, 12], [21,12], [21,11], [23, 11], [25, 11]]
+        
+        support = [[17+i, 6+i] for i in range(4)]
+        
+        self.build_starter_defences(game_state, start_walls, start_turrets)
+        self.strategy(game_state, start_turrets, main_walls, support)
         game_state.submit_turn()
+        
+        
+    def strategy(self, game_state, turrets, main_walls, support):
+        """
+        Strategy for the game. Waits until theres enough rescources to build a lot of scouts.
+        """
+        
+        game_state.attempt_upgrade(turrets)
+        game_state.attempt_upgrade(main_walls)
+        self.build_support(game_state, support)
+        game_state.attempt_upgrade(support)
+        
+        self.send_scout(game_state)
+        
+        if game_state.number_affordable(SCOUT) > 15:
+            game_state.attempt_spawn(SCOUT, [14, 0], num = 15)
+           
+            
+    def build_support(self, game_state, support):
+        for location in support:
+            game_state.attempt_spawn(SUPPORT, location)    
 
 
+    def send_scout(self, game_state):
+        scout_locations = [[13, 0], [14, 0]]
+        game_state.attempt_spawn(SCOUT, scout_locations)
+          
+          
     """
     NOTE: All the methods after this point are part of the sample starter-algo
     strategy and can safely be replaced for your custom algo.
@@ -73,8 +108,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         For offense we will use long range demolishers if they place stationary units near the enemy's front.
         If there are no stationary units to attack in the front, we will send Scouts to try and score quickly.
         """
-        # First, place basic defenses
-        self.build_defences(game_state)
+
         # Now build reactive defenses based on where the enemy scored
         self.build_reactive_defense(game_state)
 
@@ -101,6 +135,19 @@ class AlgoStrategy(gamelib.AlgoCore):
                 support_locations = [[13, 2], [14, 2], [13, 3], [14, 3]]
                 game_state.attempt_spawn(SUPPORT, support_locations)
 
+
+    def build_starter_defences(self, game_state, walls, turrets):
+        """
+        Early defense when the game starts and return the walls locations.
+        
+        """
+        # Build walls
+        game_state.attempt_spawn(WALL, walls)
+        
+        # Build turrets
+        game_state.attempt_spawn(TURRET, turrets)
+
+           
     def build_defences(self, game_state):
         """
         Build basic defenses using hardcoded locations.
@@ -153,6 +200,17 @@ class AlgoStrategy(gamelib.AlgoCore):
             We don't have to remove the location since multiple mobile 
             units can occupy the same space.
             """
+            
+    def scouting(self, game_state):
+        """
+        Send out scouts to attack the enemy base.
+        """
+        # First let's figure out the locations for the scouts to go to
+        scout_locations = [[13, 0], [14, 0]]
+        
+        # Send out the scouts
+        game_state.attempt_spawn(SCOUT, scout_locations)
+
 
     def demolisher_line_strategy(self, game_state):
         """
