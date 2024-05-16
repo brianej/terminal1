@@ -84,8 +84,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         game_state.attempt_spawn(SUPPORT, extra_support)
         game_state.attempt_upgrade(extra_support)
         
-        if game_state.number_affordable(DEMOLISHER) > 10:
-            game_state.attempt_spawn(DEMOLISHER, [14, 0], num = 10)
+        if game_state.number_affordable(DEMOLISHER) > 5:
+            game_state.attempt_spawn(DEMOLISHER, [14, 0], num = 5)
            
             
     def build_support(self, game_state, support):
