@@ -32,7 +32,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         """
         gamelib.debug_write('Configuring your custom algo strategy...')
         self.config = config
-        global WALL, SUPPORT, TURRET, SCOUT, DEMOLISHER, INTERCEPTOR, MP, SP
+        global WALL, SUPPORT, TURRET, SCOUT, DEMOLISHER, INTERCEPTOR, MP, SP, ENEMY_HEALTH
         WALL = config["unitInformation"][0]["shorthand"]
         SUPPORT = config["unitInformation"][1]["shorthand"]
         TURRET = config["unitInformation"][2]["shorthand"]
@@ -42,6 +42,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         MP = 1
         SP = 0
         # This is a good place to do initial setup
+        ENEMY_HEALTH = 30
         self.scored_on_locations = []
 
     def on_turn(self, turn_state):
@@ -56,51 +57,44 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  #Comment or remove this line to enable warnings.
+        self.enemy_health_check(game_state)
         self.start_strategy_1(game_state)
         game_state.submit_turn()
         
+    
+    def enemy_health_check(self, game_state):
+        global ENEMY_HEALTH
+        if game_state.enemy_health < ENEMY_HEALTH:
+            ENEMY_HEALTH = game_state.enemy_health
+            if game_state.number_affordable(SCOUT) > 5:
+                game_state.attempt_spawn(SCOUT, [12, 1], 1000)
+
         
     def start_strategy_1(self, game_state):
         self.build_defences(game_state)
         if game_state.turn_number % 3 == 2:
-            game_state.attempt_spawn(DEMOLISHER, [8, 5], 1000)
-    
+            game_state.attempt_spawn(DEMOLISHER, [12, 1], 1000)
+            
     
     def build_defences(self, game_state):
-        first_layer_walls = [[5, 12], [5, 11], [16, 11], [5, 10], [16, 10], [6, 9], [7, 9], [8, 9], [9, 9], [10, 9], [11, 9], [12, 9], 
-                             [13, 9], [14, 9], [15, 9], [16, 9], [16, 12], [17, 12], [18, 12], [20, 12], [21, 12], [22, 12]]
+        first_layer_walls = [[5, 12], [8, 12], [11, 12], [14, 12], [17, 12], [20, 12], [22, 12]]
         
-        reinforced_first_layer_walls = [[16, 12], [17, 12], [18, 12], [20, 12], [21, 12], [22, 12]]
+        first_layer_turrets_a = [[0, 13], [1, 13], [2, 13], [25, 13], [26, 13], [27, 13], [1, 12], [2, 12], [3, 12], [4, 12], [25, 12], [26, 12], 
+                                 [2, 11], [3, 11], [4, 11], [5, 11], [6, 11], [7, 11], [8, 11], [9, 11], [10, 11], [11, 11], [12, 11], [13, 11], 
+                                 [14, 11], [15, 11], [16, 11], [17, 11], [18, 11], [19, 11], [20, 11], [21, 11], [22, 11], [24, 11], [25, 11], 
+                                 [24, 10], [23, 9]]
         
-        first_layer_turrets_a = [[17, 11], [18, 11], [22, 11], [23, 11], [24, 11], [25, 11], [17, 10], [18, 10]]
+        first_layer_support = [[13, 3], [14, 3], [13, 2], [14, 2]]
         
-        first_layer_turrrets_b = [[19, 10], [20, 10], [22, 10], [23, 10], [24, 10], [17, 9], [18, 9], [19, 9], [20, 9], [22, 9], [23, 9]]
-        
-        emergency_layer_turrets = [[0, 13], [1, 13], [1, 12], [2, 12], [3, 12], [4, 12], [2, 11], [3, 11], [4, 11], [3, 10], [4, 10]]
-        
-        second_layer_turrets = [[14, 12], [15, 12], [14, 11], [15, 11], [14, 10], [15, 10], [14, 8], [15, 8], [16, 8], 
-                                [17, 8], [18, 8], [19, 8], [20, 8], [22, 8], [16, 7], [17, 7], [18, 7], [19, 7]]
-        
-        second_layer_walls = [[13, 12], [13, 11], [13, 10]]
-        
-        belly_layer_turrets = [[7, 8], [10, 8], [13, 8]]
-        
-        first_layer_support = [[9, 7], [10, 7], [9, 6], [10, 6]]
-        
-        second_layer_support = [[11, 7], [12, 7], [11, 6], [12, 6], [10, 5], [11, 5], [12, 5]]
+        second_layer_support = [[15, 4], [14, 4], [13, 4], [12, 4], [15, 5], [14, 5], [13, 5], [12, 5], [14, 6], [13, 6], [14, 7], [13, 7]]
         
         if game_state.turn_number <= 100 :
-            game_state.attempt_spawn(TURRET, emergency_layer_turrets)
             game_state.attempt_spawn(TURRET, first_layer_turrets_a)
-            game_state.attempt_spawn(WALL, first_layer_walls)
-            game_state.attempt_spawn(TURRET, first_layer_turrrets_b)
-            game_state.attempt_upgrade(reinforced_first_layer_walls)
+            game_state.attempt_upgrade(first_layer_support)
             game_state.attempt_spawn(SUPPORT, first_layer_support)
-            game_state.attempt_spawn(TURRET, second_layer_turrets) 
-            game_state.attempt_spawn(WALL, second_layer_walls)
-            game_state.attempt_upgrade(first_layer_support) # every now and then 
-            game_state.attempt_spawn(SUPPORT, second_layer_support)
+            game_state.attempt_spawn(WALL, first_layer_walls)
             game_state.attempt_upgrade(second_layer_support)
+            game_state.attempt_spawn(SUPPORT, second_layer_support)
        
         
     def strategy(self, game_state, turrets, main_walls, support):
