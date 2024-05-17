@@ -67,34 +67,39 @@ class AlgoStrategy(gamelib.AlgoCore):
         if game_state.enemy_health < ENEMY_HEALTH:
             ENEMY_HEALTH = game_state.enemy_health
             if game_state.number_affordable(SCOUT) > 5:
-                game_state.attempt_spawn(SCOUT, [12, 1], 1000)
+                game_state.attempt_spawn(SCOUT, [11, 2], 1000)
 
         
     def start_strategy_1(self, game_state):
         self.build_defences(game_state)
         if game_state.turn_number % 3 == 2:
-            game_state.attempt_spawn(DEMOLISHER, [12, 1], 1000)
+            game_state.attempt_spawn(DEMOLISHER, [11, 2], 1000)
             
     
     def build_defences(self, game_state):
-        first_layer_walls = [[5, 12], [8, 12], [11, 12], [14, 12], [17, 12], [20, 12], [22, 12]]
+        first_layer_walls = [[5, 12], [9, 12], [13, 12], [17, 12]]
         
-        first_layer_turrets_a = [[0, 13], [1, 13], [2, 13], [25, 13], [26, 13], [27, 13], [1, 12], [2, 12], [3, 12], [4, 12], [25, 12], [26, 12], 
-                                 [2, 11], [3, 11], [4, 11], [5, 11], [6, 11], [7, 11], [8, 11], [9, 11], [10, 11], [11, 11], [12, 11], [13, 11], 
-                                 [14, 11], [15, 11], [16, 11], [17, 11], [18, 11], [19, 11], [20, 11], [21, 11], [22, 11], [24, 11], [25, 11], 
-                                 [24, 10], [23, 9]]
+        first_layer_turrets_a = [[0, 13], [1, 13], [2, 13], [24, 13], [25, 13], [26, 13], [27, 13], 
+                                 [1, 12], [2, 12], [3, 12], [4, 12], [19, 12], [20, 12], [21, 12], 
+                                 [22, 12], [24, 12], [25, 12], [26, 12], [2, 11], [3, 11], [4, 11], 
+                                 [5, 11], [6, 11], [7, 11], [8, 11], [9, 11], [10, 11], [11, 11], 
+                                 [12, 11], [13, 11], [14, 11], [15, 11], [16, 11], [17, 11], [18, 11], 
+                                 [19, 11], [20, 11], [21, 11], [22, 11], [24, 11], [25, 11], [24, 10], [23, 9]]
         
-        first_layer_support = [[13, 3], [14, 3], [13, 2], [14, 2]]
+        first_layer_support = [[13, 4], [14, 4], [12, 3], [13, 3], [14, 3], [15, 3]]
         
-        second_layer_support = [[15, 4], [14, 4], [13, 4], [12, 4], [15, 5], [14, 5], [13, 5], [12, 5], [14, 6], [13, 6], [14, 7], [13, 7]]
+        second_layer_support = [[13, 8], [14, 8], [13, 7], [14, 7], [13, 6], [14, 6], [13, 5], [14, 5]]
+        
+        third_layer_support = [[12, 7], [15, 7], [12, 6], [15, 6], [12, 5], [15, 5], [12, 4], [15, 4]]
         
         if game_state.turn_number <= 100 :
             game_state.attempt_spawn(TURRET, first_layer_turrets_a)
+            game_state.attempt_upgrade(second_layer_support)
             game_state.attempt_upgrade(first_layer_support)
             game_state.attempt_spawn(SUPPORT, first_layer_support)
-            game_state.attempt_spawn(WALL, first_layer_walls)
-            game_state.attempt_upgrade(second_layer_support)
             game_state.attempt_spawn(SUPPORT, second_layer_support)
+            game_state.attempt_upgrade(third_layer_support)
+            game_state.attempt_spawn(SUPPORT, third_layer_support)
        
         
     def strategy(self, game_state, turrets, main_walls, support):
@@ -112,7 +117,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         game_state.attempt_upgrade(extra_support)
         
         if game_state.number_affordable(DEMOLISHER) > 5:
-            game_state.attempt_spawn(DEMOLISHER, [14, 0], num = 5)
+            game_state.attempt_spawn(DEMOLISHER, [11, 2], num = 5)
            
             
     def build_support(self, game_state, support):
