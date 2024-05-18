@@ -56,12 +56,12 @@ class AlgoStrategy(gamelib.AlgoCore):
         game_state = gamelib.GameState(self.config, turn_state)
 
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
-        game_state.suppress_warnings(True)  #Comment or remove this line to enable warnings.
+        game_state.suppress_warnings(True)  # Comment or remove this line to enable warnings.
         self.enemy_health_check(game_state)
         self.start_strategy_1(game_state)
+        self.adapt_strategy(game_state)  # Added the new strategy method
         game_state.submit_turn()
-        
-    
+
     def enemy_health_check(self, game_state):
         global ENEMY_HEALTH
         if game_state.enemy_health < ENEMY_HEALTH:
@@ -129,6 +129,37 @@ class AlgoStrategy(gamelib.AlgoCore):
         left_unit_count = self.detect_enemy_unit(game_state, valid_x=[0, 1, 2, 3, 4, 5, 6, 7], valid_y=[14, 15, 16, 17])
         right_unit_count = self.detect_enemy_unit(game_state, valid_x=[20, 21, 22, 23, 24, 25, 26, 27], valid_y=[14, 15, 16, 17])
         return left_unit_count > right_unit_count
+
+    def adapt_strategy(self, game_state):
+        self.build_initial_defences(game_state)
+        if self.is_enemy_building_supports(game_state):
+            self.send_mobile_units(game_state)
+        else:
+            self.continue_building_defences(game_state)
+
+    def build_initial_defences(self, game_state):
+        initial_turrets = [[3, 12], [24, 12]]
+        game_state.attempt_spawn(TURRET, initial_turrets)
+        initial_supports = [[13, 3], [14, 3], [13, 2], [14, 2]]
+        game_state.attempt_spawn(SUPPORT, initial_supports)
+        game_state.attempt_upgrade(initial_supports)
+        first_layer_walls = [[5, 12], [8, 12], [11, 12], [14, 12], [17, 12], [20, 12], [22, 12]]
+        game_state.attempt_spawn(WALL, first_layer_walls)
+    
+    def continue_building_defences(self, game_state):
+        additional_supports = [[15, 4], [14, 4], [13, 4], [12, 4], [15, 5], [14, 5], [13, 5], [12, 5], [14, 6], [13, 6], [14, 7], [13, 7]]
+        game_state.attempt_spawn(SUPPORT, additional_supports)
+        game_state.attempt_upgrade(additional_supports)
+
+    def is_enemy_building_supports(self, game_state):
+        support_count = self.detect_enemy_unit(game_state, unit_type=SUPPORT)
+        return support_count > 5
+
+    def send_mobile_units(self, game_state):
+        if game_state.number_affordable(SCOUT) > 5:
+            game_state.attempt_spawn(SCOUT, [13, 0], 1000)
+        elif game_state.number_affordable(DEMOLISHER) > 5:
+            game_state.attempt_spawn(DEMOLISHER, [13, 0], 1000)
           
           
     """
