@@ -132,10 +132,16 @@ class AlgoStrategy(gamelib.AlgoCore):
 
     def adapt_strategy(self, game_state):
         self.build_initial_defences(game_state)
-        if self.is_enemy_building_supports(game_state):
-            self.send_mobile_units(game_state)
+        
+        if self.enemy_sends_scouts(game_state):
+            self.build_additional_turrets(game_state)
+        elif self.enemy_sends_middle_mobile_units(game_state):
+            self.build_middle_turrets(game_state)
         else:
-            self.continue_building_supports(game_state)
+            if self.is_enemy_building_supports(game_state):
+                self.send_mobile_units(game_state)
+            else:
+                self.continue_building_supports(game_state)
 
     def build_initial_defences(self, game_state):
         initial_turrets = [[3, 12], [24, 12]]
@@ -145,6 +151,16 @@ class AlgoStrategy(gamelib.AlgoCore):
         game_state.attempt_upgrade(initial_supports)
         first_layer_walls = [[5, 12], [8, 12], [11, 12], [14, 12], [17, 12], [20, 12], [22, 12]]
         game_state.attempt_spawn(WALL, first_layer_walls)
+
+    def build_additional_turrets(self, game_state):
+        additional_turrets = [[6, 12], [21, 12]]
+        game_state.attempt_spawn(TURRET, additional_turrets)
+        game_state.attempt_upgrade(additional_turrets)
+    
+    def build_middle_turrets(self, game_state):
+        middle_turrets = [[13, 12], [14, 12]]
+        game_state.attempt_spawn(TURRET, middle_turrets)
+        game_state.attempt_upgrade(middle_turrets)
     
     def continue_building_supports(self, game_state):
         additional_supports = [[15, 4], [14, 4], [13, 4], [12, 4], [15, 5], [14, 5], [13, 5], [12, 5], [14, 6], [13, 6], [14, 7], [13, 7]]
