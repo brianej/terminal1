@@ -165,7 +165,7 @@ class AlgoStrategy(gamelib.AlgoCore):
           
     def enemy_has_many_turrets(self, game_state):
     turret_count = self.detect_enemy_unit(game_state, unit_type=TURRET)
-    return turret_count > 10  # I guess we can adjust this threshold as needed
+    return turret_count > 30  # I guess we can adjust this threshold as needed
           
     """
     NOTE: All the methods after this point are part of the sample starter-algo
