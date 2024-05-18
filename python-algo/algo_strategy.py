@@ -155,17 +155,17 @@ class AlgoStrategy(gamelib.AlgoCore):
         support_count = self.detect_enemy_unit(game_state, unit_type=SUPPORT)
         return support_count > 5
 
-   def send_mobile_units(self, game_state):
-    if self.enemy_has_many_turrets(game_state):
-        if game_state.number_affordable(DEMOLISHER) > 0:
-            game_state.attempt_spawn(DEMOLISHER, [13, 0], 1000)
-    else:
-        if game_state.number_affordable(SCOUT) > 0: 
-            game_state.attempt_spawn(SCOUT, [13, 0], 1000)  
+    def send_mobile_units(self, game_state):
+        if self.enemy_has_many_turrets(game_state):
+            if game_state.number_affordable(DEMOLISHER) > 0:
+                game_state.attempt_spawn(DEMOLISHER, [13, 0], 1000)
+        else:
+            if game_state.number_affordable(SCOUT) > 0: 
+                game_state.attempt_spawn(SCOUT, [13, 0], 1000)  
           
     def enemy_has_many_turrets(self, game_state):
-    turret_count = self.detect_enemy_unit(game_state, unit_type=TURRET)
-    return turret_count > 30  # I guess we can adjust this threshold as needed
+        turret_count = self.detect_enemy_unit(game_state, unit_type=TURRET)
+        return turret_count > 30  # I guess we can adjust this threshold as needed
           
     """
     NOTE: All the methods after this point are part of the sample starter-algo
