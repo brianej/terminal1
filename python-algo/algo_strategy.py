@@ -135,7 +135,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         if self.is_enemy_building_supports(game_state):
             self.send_mobile_units(game_state)
         else:
-            self.continue_building_defences(game_state)
+            self.continue_building_supports(game_state)
 
     def build_initial_defences(self, game_state):
         initial_turrets = [[3, 12], [24, 12]]
@@ -146,7 +146,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         first_layer_walls = [[5, 12], [8, 12], [11, 12], [14, 12], [17, 12], [20, 12], [22, 12]]
         game_state.attempt_spawn(WALL, first_layer_walls)
     
-    def continue_building_defences(self, game_state):
+    def continue_building_supports(self, game_state):
         additional_supports = [[15, 4], [14, 4], [13, 4], [12, 4], [15, 5], [14, 5], [13, 5], [12, 5], [14, 6], [13, 6], [14, 7], [13, 7]]
         game_state.attempt_spawn(SUPPORT, additional_supports)
         game_state.attempt_upgrade(additional_supports)
@@ -160,8 +160,6 @@ class AlgoStrategy(gamelib.AlgoCore):
             game_state.attempt_spawn(SCOUT, [13, 0], 1000)
         elif game_state.number_affordable(DEMOLISHER) > 5:
             game_state.attempt_spawn(DEMOLISHER, [13, 0], 1000)
-          
-          
     """
     NOTE: All the methods after this point are part of the sample starter-algo
     strategy and can safely be replaced for your custom algo.
