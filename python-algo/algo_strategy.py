@@ -32,7 +32,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         """
         gamelib.debug_write('Configuring your custom algo strategy...')
         self.config = config
-        global WALL, SUPPORT, TURRET, SCOUT, DEMOLISHER, INTERCEPTOR, MP, SP, ENEMY_HEALTH
+        global WALL, SUPPORT, TURRET, SCOUT, DEMOLISHER, INTERCEPTOR, MP, SP, ENEMY_HEALTH, RUSH
         WALL = config["unitInformation"][0]["shorthand"]
         SUPPORT = config["unitInformation"][1]["shorthand"]
         TURRET = config["unitInformation"][2]["shorthand"]
@@ -43,6 +43,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         SP = 0
         # This is a good place to do initial setup
         ENEMY_HEALTH = 30
+        RUSH = False
         self.scored_on_locations = []
 
     def on_turn(self, turn_state):
@@ -57,12 +58,13 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  #Comment or remove this line to enable warnings.
-        self.enemy_health_check(game_state)
+        
         self.start_strategy_1(game_state)
+        
         game_state.submit_turn()
         
     
-    def enemy_health_check(self, game_state):
+    def enemy_health_check_attack(self, game_state):
         global ENEMY_HEALTH
         if game_state.enemy_health < ENEMY_HEALTH:
             ENEMY_HEALTH = game_state.enemy_health
@@ -71,65 +73,96 @@ class AlgoStrategy(gamelib.AlgoCore):
 
         
     def start_strategy_1(self, game_state):
+        self.enemy_health_check_attack(game_state)
+                
         self.build_defences(game_state)
-        if game_state.turn_number % 3 == 2:
-            game_state.attempt_spawn(DEMOLISHER, [11, 2], 1000)
+        
+        if game_state.turn_number == 10:
+            self.early_support(game_state)
+        elif game_state.turn_number <= 10:
+            self.before_10(game_state)
+            
+        if game_state.turn_number % 4 == 0 and game_state.turn_number > 10:
+            game_state.attempt_spawn(DEMOLISHER, [12, 1], 1000)
+        
             
     
     def build_defences(self, game_state):
-        first_layer_walls = [[5, 12], [9, 12], [13, 12], [17, 12]]
+
+        first_layer_turrets_a = [[1, 13], [2, 13], [3, 13], [22, 13], [23, 13], [24, 13], [27, 13], [2, 12], [5, 12], 
+                                 [6, 12], [9, 12], [10, 12], [13, 12], [14, 12], [17, 12], [18, 12], [20, 12], 
+                                 [21, 12], [26, 12], [5, 11], [9, 11], [13, 11], [17, 11], [20, 11]]
         
-        first_layer_turrets_a = [[0, 13], [1, 13], [2, 13], [24, 13], [25, 13], [26, 13], [27, 13], 
-                                 [1, 12], [2, 12], [3, 12], [4, 12], [19, 12], [20, 12], [21, 12], 
-                                 [22, 12], [24, 12], [25, 12], [26, 12], [2, 11], [3, 11], [4, 11], 
-                                 [5, 11], [6, 11], [7, 11], [8, 11], [9, 11], [10, 11], [11, 11], 
-                                 [12, 11], [13, 11], [14, 11], [15, 11], [16, 11], [17, 11], [18, 11], 
-                                 [19, 11], [20, 11], [21, 11], [22, 11], [24, 11], [25, 11], [24, 10], [23, 9]]
+        first_layer_support = [[13, 4], [14, 4], [13, 3], [14, 3], [13, 2], [14, 2]]
         
-        first_layer_support = [[13, 4], [14, 4], [12, 3], [13, 3], [14, 3], [15, 3]]
+        second_layer_support = [[12, 7], [13, 7], [14, 7], [15, 7], [12, 6], [13, 6], [14, 6], [15, 6], [12, 5], [13, 5], [14, 5], [15, 5], [12, 4], [15, 4], [12, 3], [15, 3]]
         
-        second_layer_support = [[13, 8], [14, 8], [13, 7], [14, 7], [13, 6], [14, 6], [13, 5], [14, 5]]
+        first_layer_walls = [[6, 13], [10, 13], [13, 13], [17, 13], [21, 13]]
         
-        third_layer_support = [[12, 7], [15, 7], [12, 6], [15, 6], [12, 5], [15, 5], [12, 4], [15, 4]]
+        second_layer_turrets = [[0, 13], [4, 13], [21, 13], [1, 12], [3, 12], [4, 12], [7, 12], [8, 12], [11, 12], [12, 12], 
+                                [15, 12], [16, 12], [19, 12], [22, 12], [23, 12], [2, 11], [3, 11], [4, 11], [5, 11], [6, 11], 
+                                [7, 11], [8, 11], [9, 11], [10, 11], [11, 11], [13, 11], [14, 11], [15, 11], [16, 11], [17, 11], 
+                                [19, 11], [20, 11], [21, 11], [22, 11], [25, 11], [4, 10], [5, 10], [6, 10], [9, 10], [10, 10], [11, 10], 
+                                [14, 10], [15, 10], [16, 10], [19, 10], [20, 10], [21, 10], [24, 10], [5, 9], [10, 9], [15, 9], [20, 9]]
         
-        if game_state.turn_number <= 100 :
-            game_state.attempt_spawn(TURRET, first_layer_turrets_a)
-            game_state.attempt_upgrade(second_layer_support)
-            game_state.attempt_upgrade(first_layer_support)
-            game_state.attempt_spawn(SUPPORT, first_layer_support)
-            game_state.attempt_spawn(SUPPORT, second_layer_support)
-            game_state.attempt_upgrade(third_layer_support)
-            game_state.attempt_spawn(SUPPORT, third_layer_support)
-       
-        
-    def strategy(self, game_state, turrets, main_walls, support):
-        """
-        Strategy for the game. Waits until theres enough rescources to build a lot of scouts.
-        """
-        
-        game_state.attempt_upgrade(turrets)
-        game_state.attempt_upgrade(main_walls)
-        self.build_support(game_state, support)
-        game_state.attempt_upgrade(support)
-        
-        extra_support = [[13+i, 2+i] for i in range(4)] + [[13+i, 1+i] for i in range(10)]
-        game_state.attempt_spawn(SUPPORT, extra_support)
-        game_state.attempt_upgrade(extra_support)
-        
-        if game_state.number_affordable(DEMOLISHER) > 5:
-            game_state.attempt_spawn(DEMOLISHER, [11, 2], num = 5)
-           
+        game_state.attempt_spawn(TURRET, first_layer_turrets_a)
+  
+        if game_state.turn_number > 7:
+            game_state.attempt_spawn(TURRET, second_layer_turrets)
+            game_state.attempt_spawn(WALL, first_layer_walls)
             
-    def build_support(self, game_state, support):
-        for location in support:
-            game_state.attempt_spawn(SUPPORT, location)    
-
-
-    def send_demolisher(self, game_state):
-        scout_locations = [[13, 0], [14, 0]]
-        game_state.attempt_spawn(DEMOLISHER, scout_locations)
+        game_state.attempt_upgrade(second_layer_support)
+        game_state.attempt_spawn(SUPPORT, first_layer_support)
+        game_state.attempt_spawn(SUPPORT, second_layer_support)
+        game_state.attempt_upgrade(first_layer_walls)
+        game_state.attempt_upgrade(first_layer_support)
+        
+        """
+        game_state.attempt_upgrade(second_layer_support)
+        game_state.attempt_upgrade(first_layer_support)
+        game_state.attempt_spawn(SUPPORT, first_layer_support)
+        game_state.attempt_spawn(SUPPORT, second_layer_support)
+        game_state.attempt_upgrade(third_layer_support)
+        game_state.attempt_spawn(SUPPORT, third_layer_support)
+        """
+    
+    def before_10(self, game_state):
+        spawn_location = [[11, 2], [16, 2], [12, 1], [15, 1], [13, 0], [14, 0]]
+        
+        other_spawn = [[0, 13], [27, 13], [1, 12], [26, 12], [2, 11], [25, 11], [3, 10], 
+                       [24, 10], [4, 9], [23, 9], [5, 8], [22, 8], [6, 7], [21, 7], [7, 6], 
+                       [20, 6], [8, 5], [19, 5], [9, 4], [18, 4], [10, 3], [17, 3]]
+        
+        all_spawn = [[11, 2], [16, 2], [12, 1], [15, 1], [13, 0], [14, 0], [0, 13], [27, 13], 
+                     [1, 12], [26, 12], [2, 11], [25, 11], [3, 10], [24, 10], [4, 9], [23, 9], 
+                     [5, 8], [22, 8], [6, 7], [21, 7], [7, 6], [20, 6], [8, 5], [19, 5], [9, 4], 
+                     [18, 4], [10, 3], [17, 3]]
+        
+        best_location = self.least_damage_spawn_location(game_state, spawn_location)
+        
+        if game_state.turn_number == 3:
+            game_state.attempt_spawn(SCOUT, best_location, 13)
+        elif game_state.turn_number == 8:
+            game_state.attempt_spawn(SCOUT, best_location, 15)
         
         
+    def early_support(self, game_state):
+        global RUSH
+        score = 0
+        for location in game_state.game_map:
+            if game_state.contains_stationary_unit(location):
+                for unit in game_state.game_map[location]:
+                    if unit.unit_type == 1 and unit.player_index == 1:
+                        score += 1
+                        if unit.upgraded:
+                            score += 1
+        if score >= 6:
+            RUSH = True
+            return True
+
+        return False
+            
+           
     def is_left_heavy(self, game_state):
         left_unit_count = self.detect_enemy_unit(game_state, valid_x=[0, 1, 2, 3, 4, 5, 6, 7], valid_y=[14, 15, 16, 17])
         right_unit_count = self.detect_enemy_unit(game_state, valid_x=[20, 21, 22, 23, 24, 25, 26, 27], valid_y=[14, 15, 16, 17])
@@ -151,6 +184,7 @@ class AlgoStrategy(gamelib.AlgoCore):
             # Build turret one space above so that it doesn't block our own edge spawn locations
             build_location = [location[0], location[1]+1]
             game_state.attempt_spawn(TURRET, build_location)
+
 
     def least_damage_spawn_location(self, game_state, location_options):
         """
