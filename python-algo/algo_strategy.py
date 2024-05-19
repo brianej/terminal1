@@ -74,7 +74,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         
     def start_strategy_1(self, game_state):
         self.enemy_health_check_attack(game_state)
-                
+        
+        self.remove_edge(game_state)
         self.build_defences(game_state)
         
         if game_state.turn_number == 10:
@@ -83,7 +84,10 @@ class AlgoStrategy(gamelib.AlgoCore):
             self.before_10(game_state)
             
         if game_state.turn_number % 4 == 0 and game_state.turn_number > 10:
-            game_state.attempt_spawn(DEMOLISHER, [12, 1], 1000)
+            if random.randint(1,4) in [1,2,3]:
+                game_state.attempt_spawn(DEMOLISHER, [12, 1], 1000)
+            else:
+                game_state.attempt_spawn(SCOUT, [12, 1], 1000)
         
             
     
@@ -100,10 +104,11 @@ class AlgoStrategy(gamelib.AlgoCore):
         first_layer_walls = [[6, 13], [10, 13], [13, 13], [17, 13], [21, 13]]
         
         second_layer_turrets = [[0, 13], [4, 13], [21, 13], [1, 12], [3, 12], [4, 12], [7, 12], [8, 12], [11, 12], [12, 12], 
-                                [15, 12], [16, 12], [19, 12], [22, 12], [23, 12], [2, 11], [3, 11], [4, 11], [5, 11], [6, 11], 
+                                [15, 12], [16, 12], [19, 12], [22, 12], [23, 12], [20, 11], [21, 11], [22, 11], [25, 11], [2, 11], 
+                                [3, 11], [4, 11], [5, 11], [6, 11], 
                                 [7, 11], [8, 11], [9, 11], [10, 11], [11, 11], [13, 11], [14, 11], [15, 11], [16, 11], [17, 11], 
-                                [19, 11], [20, 11], [21, 11], [22, 11], [25, 11], [4, 10], [5, 10], [6, 10], [9, 10], [10, 10], [11, 10], 
-                                [14, 10], [15, 10], [16, 10], [19, 10], [20, 10], [21, 10], [24, 10], [5, 9], [10, 9], [15, 9], [20, 9]]
+                                [19, 11], [20, 10], [21, 10], [24, 10], [4, 10], [5, 10], [6, 10], [9, 10], [10, 10], [11, 10], 
+                                [14, 10], [15, 10], [16, 10], [19, 10]]
         
         game_state.attempt_spawn(TURRET, first_layer_turrets_a)
   
@@ -163,11 +168,14 @@ class AlgoStrategy(gamelib.AlgoCore):
         return False
             
            
-    def is_left_heavy(self, game_state):
-        left_unit_count = self.detect_enemy_unit(game_state, valid_x=[0, 1, 2, 3, 4, 5, 6, 7], valid_y=[14, 15, 16, 17])
-        right_unit_count = self.detect_enemy_unit(game_state, valid_x=[20, 21, 22, 23, 24, 25, 26, 27], valid_y=[14, 15, 16, 17])
-        return left_unit_count > right_unit_count
-          
+    def remove_edge(self, game_state):
+        edges = [[27, 13], [26, 12], [25, 11], [24, 10]]
+        
+        for edge in edges:
+            if game_state.contains_stationary_unit(edge):
+                if game_state.game_map[edge][0].health <= 20:
+                    game_state.attempt_remove(edge)
+                    game_state.attempt_spawn(TURRET, edge)
           
     """
     NOTE: All the methods after this point are part of the sample starter-algo
